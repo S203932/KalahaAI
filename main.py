@@ -1,35 +1,15 @@
 import numpy as np 
 
-# The first 6th represents the 6 pits and the 7th represents the goal
-# of the given player
-player = np.array([6,6,6,6,6,6,0])
-
-# The board is the 2 arrays for each player half of the board
-board = np.array([player,player])
-
-# The currentplayer counter 
-currentPlayer:int = 1
-
-# Variable to store extra turn value
-extraTurn:int = 0
-
 def pointsOfPlayer(playerNumber:int, board:np.ndarray):
     return board[playerNumber][6]
 
-def gameOver(board:np.ndarray, currentPlayer: int) -> bool:
+def gameOver(board:np.ndarray) -> bool:
+    
+    return np.any(np.all(board[:, :6] == 0, axis=1))
 
-    opposingPlayer:int = (currentPlayer+1)%2
+def isMoveLegal(board:np.ndarray, playerNumber:int, pitt:int) -> bool:
+    return board[playerNumber][pitt] > 0
 
-    if np.any(np.all(board[:, :6] == 0, axis=1)):
-
-        remaining = np.sum(board[opposingPlayer][:6])
-
-        board[currentPlayer][6] += remaining
-        board[opposingPlayer][:6] = 0
-
-        return True
-        
-    return False
 
 def moveRocksFromPitt(playerNumber:int, board:np.ndarray, pittNumber:int) -> int:
     """
@@ -49,7 +29,8 @@ def moveRocksFromPitt(playerNumber:int, board:np.ndarray, pittNumber:int) -> int
     
     stones:int = board[playerNumber][pittNumber]
 
-    if stones <= 0:
+    # There must be at least 1 stone in the pitt
+    if not isMoveLegal(board,playerNumber,pittNumber):
         return -1
 
     board[playerNumber][pittNumber] = 0
@@ -89,6 +70,31 @@ def moveRocksFromPitt(playerNumber:int, board:np.ndarray, pittNumber:int) -> int
         #Empty the opposing players pitt into the current players goal
         board[playerNumber][6] += board[opposingPlayer][5-currentPitt]
         board[opposingPlayer][5-currentPitt] = 0
+
+    # Check if any of the two sides on the board are empty
+    if np.any(np.all(board[:, :6] == 0, axis=1)):
+        
+        opposingPlayer = (playerNumber + 1)%2
+
+        # Check which side of the board is empty
+
+        # If the current players side is empty:
+        if np.sum(board[playerNumber][:6]) == 0:
+
+            # Empty opposing players stones in currentplayers goal                  
+            remaining = np.sum(board[opposingPlayer][:6])
+
+            board[playerNumber][6] += remaining
+            board[opposingPlayer][:6] = 0
+
+        # If opponents side is empty
+        else:
+
+            # Empty current players stones in opposing players goal
+            remaining = np.sum(board[playerNumber][:6])
+
+            board[opposingPlayer][6] += remaining
+            board[playerNumber][:6] = 0
 
 
     # If the last stone ends in the current players goal, then they get an extra turn
@@ -140,39 +146,53 @@ def printTable(board:np.ndarray, currentPlayer:int, choice:bool):
         print("\n")
 
 
+def startGame():
+    # The first 6th represents the 6 pits and the 7th represents the goal
+    # of the given player
+    player = np.array([6,6,6,6,6,6,0])
+
+    # The board is the 2 arrays for each player half of the board
+    board = np.array([player,player])
+
+    # The currentplayer counter 
+    currentPlayer:int = 1
+
+    # Variable to store extra turn value
+    extraTurn:int = 0
+
+    while(not gameOver(board)):
+
+        if(extraTurn == 0):
+            currentPlayer = (currentPlayer+1)%2
+
+        print(f'\nPlayer {currentPlayer+1}\'s turn\n')
+
+        ## I need to print it from the point of view from the current player
+        ## Arrows should show options and names should be next to their goals
+
+        printTable(board=board, currentPlayer=currentPlayer,choice=True)
+        
+        ## I should then let them choose which field they want to move the stones from
+
+        playerChoice:int = int(input("Select what field you'd like to move the stones from:"))-1
+
+        extraTurn = moveRocksFromPitt(playerNumber=currentPlayer,board=board,pittNumber=playerChoice)
+
+        ## Print board state again after the move
+        print('\nBoard after the move\n')
+        printTable(board=board, currentPlayer=currentPlayer,choice=False)
+
+        if(extraTurn == -1):
+            print(f'\n\nThe pitt option {playerChoice+1} is not a valid choice.\n')
+
+        elif(extraTurn == 1):
+            print(f'\n\nPlayer {currentPlayer+1} ended their turn in their goal. They\'re granted an extra turn.\n')
+        
+        else:
+            print('\n\n')
 
 
-while(not gameOver(board, currentPlayer)):
+    print("\nThe game has ended\n")
+    print(f'Player 1 won with {board[0][6]} points to player 2\'s {board[1][6]} points') if board[0][6]>board[1][6] else print(f'Player 2 won with {board[1][6]} points to player 1\'s {board[0][6]} points') if board[0][6]<board[1][6] else print(f'The game is tied as Player 1 has {board[0][6]} points and player 2 has {board[1][6]} points')
 
-    if(extraTurn == 0):
-        currentPlayer = (currentPlayer+1)%2
-
-    print(f'\nPlayer {currentPlayer+1}\'s turn\n')
-
-    ## I need to print it from the point of view from the current player
-    ## Arrows should show options and names should be next to their goals
-
-    printTable(board=board, currentPlayer=currentPlayer,choice=True)
-    
-    ## I should then let them choose which field they want to move the stones from
-
-    playerChoice:int = int(input("Select what field you'd like to move the stones from:"))-1
-
-    extraTurn = moveRocksFromPitt(playerNumber=currentPlayer,board=board,pittNumber=playerChoice)
-
-    ## Print board state again after the move
-    print('\nBoard after the move\n')
-    printTable(board=board, currentPlayer=currentPlayer,choice=False)
-
-    if(extraTurn == -1):
-        print(f'\n\nThe pitt option {playerChoice+1} is not a valid choice.\n')
-
-    elif(extraTurn == 1):
-        print(f'\n\nPlayer {currentPlayer+1} ended their turn in their goal. They\'re granted an extra turn.\n')
-    
-    else:
-        print('\n\n')
-
-
-print("\nThe game has ended\n")
-print(f'Player 1 won with {board[0][6]} points to player 2\'s {board[1][6]} points') if board[0][6]>board[1][6] else print(f'Player 2 won with {board[1][6]} points to player 1\'s {board[0][6]} points') if board[0][6]<board[1][6] else print(f'The game is tied as Player 1 has {board[0][6]} points and player 2 has {board[1][6]} points')
+#startGame()
