@@ -10,7 +10,7 @@ class PittOption:
         self.score=score
 
 
-def minimax(depth:int, board:np.ndarray, maxPlayer:int, currentPlayer:int, alpha:int=-73, beta:int=73):
+def minimax(depth:int, board:np.ndarray, maxPlayer:int, currentPlayer:int, alpha:int=-73, beta:int=73, cache=None):
     """
     move: the move that is best
     depth: max depth for the tree
@@ -18,10 +18,20 @@ def minimax(depth:int, board:np.ndarray, maxPlayer:int, currentPlayer:int, alpha
     maxPlayer: player who stands to benefit
     currentPlayer: player whose turn it is
     """
+    if cache is None:
+        cache = {}
+
+    # Dictionary key for the cache
+    key = (tuple(board.ravel()), currentPlayer, depth)
+    
+    if key in cache:
+        return cache[key]
 
     # If the maximum depth or the game is over, evaluate the state
     if depth == 0 or gameOver(board):
-        return PittOption(-1,evaluate(board, maxPlayer))
+        score:PittOption = PittOption(-1,evaluate(board, maxPlayer))
+        cache[key] = score    
+        return score
     
     isMaximizing:bool = maxPlayer == currentPlayer
     bestScore:int = -73 if isMaximizing else 73
@@ -32,12 +42,12 @@ def minimax(depth:int, board:np.ndarray, maxPlayer:int, currentPlayer:int, alpha
     # Traversing each pitt option
     for pitt in options:
         # Make a copy of the board to be modified
-        newBoard:np.ndarray = board.copy()
+        newBoard:np.ndarray = np.copy(board)
         # Make the move
         extraTurn:int = moveRocksFromPitt(playerNumber=currentPlayer,board=newBoard,pittNumber=pitt)
         nextPlayer:int = currentPlayer if extraTurn == 1 else (currentPlayer + 1) % 2
         
-        score:int = minimax(depth=depth-1,board=newBoard,maxPlayer=maxPlayer,currentPlayer=nextPlayer, alpha=alpha, beta=beta).score
+        score:int = minimax(depth=depth-1,board=newBoard,maxPlayer=maxPlayer,currentPlayer=nextPlayer, alpha=alpha, beta=beta, cache=cache).score
 
         if isMaximizing:
             if bestScore < score:
@@ -54,7 +64,9 @@ def minimax(depth:int, board:np.ndarray, maxPlayer:int, currentPlayer:int, alpha
         if beta <= alpha:
                 break
 
-    return PittOption(bestMove,bestScore)
+    result:PittOption = PittOption(bestMove,bestScore)
+    cache[key] = result
+    return result
 
 
 # The evaluation method will be calculating the lead the player has
@@ -80,7 +92,7 @@ def heuristicEval(board:np.ndarray, currentPlayer:int) -> List[int]:
     for pitt in range(6):
         if isMoveLegal(board,currentPlayer,pitt):
             # Make a copy of the board to be modified
-            newBoard:np.ndarray = board.copy()
+            newBoard:np.ndarray = np.copy(board)
 
             # Make the move
             extraTurn:int = moveRocksFromPitt(playerNumber=currentPlayer,board=newBoard,pittNumber=pitt)
@@ -88,19 +100,13 @@ def heuristicEval(board:np.ndarray, currentPlayer:int) -> List[int]:
             score:int = pointsOfPlayer(currentPlayer,newBoard)
 
             # I can add a bonus to score later if it gives an extra turn
-
-            options.append((pitt,score))
-
+            if extraTurn == 1:
+                # Arbitrary number for extra turn benefit
+                score += 3
             
+            options.append((pitt,score))
+ 
     options.sort(key=lambda x: x[1], reverse=True)
 
     return [p[0] for p in options]
-            
-    # How to order? Better to have more stones or extra turns?
-    # For now, better to have more stones
-    # Extra turns will be a thing for later
-
-# Caching is also possible at a later point 
-# Essentially caching board states with their associated scores (maybe even depth), 
-# so they won't have to be calculated again.
 
