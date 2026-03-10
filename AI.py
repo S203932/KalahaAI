@@ -1,4 +1,5 @@
 import numpy as np
+from typing import List
 from gameLogic import gameOver, isMoveLegal, moveRocksFromPitt, pointsOfPlayer
 
 
@@ -26,32 +27,32 @@ def minimax(depth:int, board:np.ndarray, maxPlayer:int, currentPlayer:int, alpha
     bestScore:int = -73 if isMaximizing else 73
     bestMove:int = -1
 
-    # Traversing each pitt option
-    for pitt in range(6):
-        # It should only attempt to do it if it's a legal move (need a check)
-        if isMoveLegal(board,currentPlayer,pitt):
-            # Make a copy of the board to be modified
-            newBoard:np.ndarray = board.copy()
-            # Make the move
-            extraTurn:int = moveRocksFromPitt(playerNumber=currentPlayer,board=newBoard,pittNumber=pitt)
-            nextPlayer:int = currentPlayer if extraTurn == 1 else (currentPlayer + 1) % 2
-            
-            score:int = minimax(depth=depth-1,board=newBoard,maxPlayer=maxPlayer,currentPlayer=nextPlayer, alpha=alpha, beta=beta).score
+    options:List[int] = heuristicEval(board,currentPlayer)
 
-            if isMaximizing:
-                if bestScore < score:
-                    bestScore = score
-                    bestMove = pitt
-                alpha = max(alpha,bestScore)
-                
-            else:
-                if bestScore > score:
-                    bestScore = score
-                    bestMove = pitt
-                beta = min(beta,bestScore)
+    # Traversing each pitt option
+    for pitt in options:
+        # Make a copy of the board to be modified
+        newBoard:np.ndarray = board.copy()
+        # Make the move
+        extraTurn:int = moveRocksFromPitt(playerNumber=currentPlayer,board=newBoard,pittNumber=pitt)
+        nextPlayer:int = currentPlayer if extraTurn == 1 else (currentPlayer + 1) % 2
+        
+        score:int = minimax(depth=depth-1,board=newBoard,maxPlayer=maxPlayer,currentPlayer=nextPlayer, alpha=alpha, beta=beta).score
+
+        if isMaximizing:
+            if bestScore < score:
+                bestScore = score
+                bestMove = pitt
+            alpha = max(alpha,bestScore)
             
-            if beta <= alpha:
-                    break
+        else:
+            if bestScore > score:
+                bestScore = score
+                bestMove = pitt
+            beta = min(beta,bestScore)
+        
+        if beta <= alpha:
+                break
 
     return PittOption(bestMove,bestScore)
 
@@ -64,7 +65,52 @@ def evaluate(board:np.ndarray, maxPlayer:int):
 
 # Heuristic function that prioritize each option is preferred
 # So rather than going through each branch in chronological order, order them according to extra turns and
-# Amount of points in the goal 
+# Amount of points in the goal
+
+# Ordering the options for the best possible case
+def heuristicEval(board:np.ndarray, currentPlayer:int) -> List[int]:
+    """
+    board:current boardstate
+    currentPlayer: players turn to evaluate
+    return: gives a list with the best options first
+    """
+    options = []
+    
+    # traversing each option and adding it to the list
+    for pitt in range(6):
+        if isMoveLegal(board,currentPlayer,pitt):
+            # Make a copy of the board to be modified
+            newBoard:np.ndarray = board.copy()
+
+            # Make the move
+            extraTurn:int = moveRocksFromPitt(playerNumber=currentPlayer,board=newBoard,pittNumber=pitt)
+
+            score:int = pointsOfPlayer(currentPlayer,newBoard)
+
+            # I can add a bonus to score later if it gives an extra turn
+
+            options.append((pitt,score))
+
+            
+    options.sort(key=lambda x: x[1], reverse=True)
+
+    return [p[0] for p in options]
+            
+    # How to order? Better to have more stones or extra turns?
+    # For now, better to have more stones
+    # Extra turns will be a thing for later
+
+
+            
+
+
+
+
+
+
+
+
+
 
 # Caching is also possible at a later point 
 # Essentially caching board states with their associated scores (maybe even depth), 

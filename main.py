@@ -91,7 +91,7 @@ def startGameAI():
         #Otherwise it is the AI's turn
         else:
             #Get the AI value
-            bestCase:PittOption = minimax(depth=7,board=board,maxPlayer=aiPlayer,currentPlayer=currentPlayer)
+            bestCase:PittOption = minimax(depth=11,board=board,maxPlayer=aiPlayer,currentPlayer=currentPlayer)
             playerChoice:int = bestCase.move
             print(f'\nThe AI chooses pitt {playerChoice + 1} as it has the best score of {bestCase.score} stones difference\n')
 
