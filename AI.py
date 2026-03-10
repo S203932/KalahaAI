@@ -100,18 +100,6 @@ def heuristicEval(board:np.ndarray, currentPlayer:int) -> List[int]:
     # For now, better to have more stones
     # Extra turns will be a thing for later
 
-
-            
-
-
-
-
-
-
-
-
-
-
 # Caching is also possible at a later point 
 # Essentially caching board states with their associated scores (maybe even depth), 
 # so they won't have to be calculated again.
