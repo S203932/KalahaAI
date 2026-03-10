@@ -70,6 +70,9 @@ def startGameAI():
     # Variable to store extra turn value
     extraTurn:int = 0
 
+    # AI cache for the game
+    cache = {}
+
     while(not gameOver(board)):
 
         if(extraTurn == 0):
@@ -91,7 +94,7 @@ def startGameAI():
         #Otherwise it is the AI's turn
         else:
             #Get the AI value
-            bestCase:PittOption = minimax(depth=11,board=board,maxPlayer=aiPlayer,currentPlayer=currentPlayer)
+            bestCase:PittOption = minimax(depth=9,board=board,maxPlayer=aiPlayer,currentPlayer=currentPlayer, cache=cache)
             playerChoice:int = bestCase.move
             print(f'\nThe AI chooses pitt {playerChoice + 1} as it has the best score of {bestCase.score} stones difference\n')
 

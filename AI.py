@@ -22,15 +22,15 @@ def minimax(depth:int, board:np.ndarray, maxPlayer:int, currentPlayer:int, alpha
         cache = {}
 
     # Dictionary key for the cache
-    key = (tuple(board.ravel()), currentPlayer, depth)
+    key = (board.tobytes(), currentPlayer)
     
-    if key in cache:
-        return cache[key]
+    if key in cache and cache[key][1]>=depth:
+        return cache[key][0]
 
     # If the maximum depth or the game is over, evaluate the state
     if depth == 0 or gameOver(board):
         score:PittOption = PittOption(-1,evaluate(board, maxPlayer))
-        cache[key] = score    
+        cache[key] = (score, depth)    
         return score
     
     isMaximizing:bool = maxPlayer == currentPlayer
@@ -65,7 +65,7 @@ def minimax(depth:int, board:np.ndarray, maxPlayer:int, currentPlayer:int, alpha
                 break
 
     result:PittOption = PittOption(bestMove,bestScore)
-    cache[key] = result
+    cache[key] = (result,depth)
     return result
 
 
