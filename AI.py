@@ -1,5 +1,5 @@
 import numpy as np
-from main import gameOver, isMoveLegal, moveRocksFromPitt, pointsOfPlayer
+from gameLogic import gameOver, isMoveLegal, moveRocksFromPitt, pointsOfPlayer
 
 
 # I need to carry forth the information about what pitt it is an the score it has
