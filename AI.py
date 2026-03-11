@@ -1,10 +1,10 @@
 import numpy as np
 from typing import List
-from gameLogic import gameOver, isMoveLegal, moveRocksFromPitt, pointsOfPlayer
+from gameLogic import gameOver, isMoveLegal, moveRocksFromPit, pointsOfPlayer
 
 
-# I need to carry forth the information about what pitt it is an the score it has
-class PittOption:
+# I need to carry forth the information about what pit it is an the score it has
+class PitOption:
     def __init__(self, move:int, score:int):
         self.move=move
         self.score=score
@@ -29,7 +29,7 @@ def minimax(depth:int, board:np.ndarray, maxPlayer:int, currentPlayer:int, alpha
 
     # If the maximum depth or the game is over, evaluate the state
     if depth == 0 or gameOver(board):
-        score:PittOption = PittOption(-1,evaluate(board, maxPlayer))
+        score:PitOption = PitOption(-1,evaluate(board, maxPlayer))
         cache[key] = (score, depth)    
         return score
     
@@ -39,12 +39,12 @@ def minimax(depth:int, board:np.ndarray, maxPlayer:int, currentPlayer:int, alpha
 
     options:List[int] = heuristicEval(board,currentPlayer)
 
-    # Traversing each pitt option
-    for pitt in options:
+    # Traversing each pit option
+    for pit in options:
         # Make a copy of the board to be modified
         newBoard:np.ndarray = np.copy(board)
         # Make the move
-        extraTurn:int = moveRocksFromPitt(playerNumber=currentPlayer,board=newBoard,pittNumber=pitt)
+        extraTurn:int = moveRocksFromPit(playerNumber=currentPlayer,board=newBoard,pitNumber=pit)
         nextPlayer:int = currentPlayer if extraTurn == 1 else (currentPlayer + 1) % 2
         
         score:int = minimax(depth=depth-1,board=newBoard,maxPlayer=maxPlayer,currentPlayer=nextPlayer, alpha=alpha, beta=beta, cache=cache).score
@@ -52,19 +52,19 @@ def minimax(depth:int, board:np.ndarray, maxPlayer:int, currentPlayer:int, alpha
         if isMaximizing:
             if bestScore < score:
                 bestScore = score
-                bestMove = pitt
+                bestMove = pit
             alpha = max(alpha,bestScore)
             
         else:
             if bestScore > score:
                 bestScore = score
-                bestMove = pitt
+                bestMove = pit
             beta = min(beta,bestScore)
         
         if beta <= alpha:
                 break
 
-    result:PittOption = PittOption(bestMove,bestScore)
+    result:PitOption = PitOption(bestMove,bestScore)
     cache[key] = (result,depth)
     return result
 
@@ -89,13 +89,13 @@ def heuristicEval(board:np.ndarray, currentPlayer:int) -> List[int]:
     options = []
     
     # traversing each option and adding it to the list
-    for pitt in range(6):
-        if isMoveLegal(board,currentPlayer,pitt):
+    for pit in range(6):
+        if isMoveLegal(board,currentPlayer,pit):
             # Make a copy of the board to be modified
             newBoard:np.ndarray = np.copy(board)
 
             # Make the move
-            extraTurn:int = moveRocksFromPitt(playerNumber=currentPlayer,board=newBoard,pittNumber=pitt)
+            extraTurn:int = moveRocksFromPit(playerNumber=currentPlayer,board=newBoard,pitNumber=pit)
 
             score:int = pointsOfPlayer(currentPlayer,newBoard)
 
@@ -104,7 +104,7 @@ def heuristicEval(board:np.ndarray, currentPlayer:int) -> List[int]:
                 # Arbitrary number for extra turn benefit
                 score += 3
             
-            options.append((pitt,score))
+            options.append((pit,score))
  
     options.sort(key=lambda x: x[1], reverse=True)
 

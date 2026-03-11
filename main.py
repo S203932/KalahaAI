@@ -33,14 +33,14 @@ def startGame():
 
         playerChoice:int = int(input("Select what field you'd like to move the stones from:"))-1
 
-        extraTurn = moveRocksFromPitt(playerNumber=currentPlayer,board=board,pittNumber=playerChoice)
+        extraTurn = moveRocksFromPit(playerNumber=currentPlayer,board=board,pitNumber=playerChoice)
 
         ## Print board state again after the move
         print('\nBoard after the move\n')
         printTable(board=board, currentPlayer=currentPlayer,choice=False)
 
         if(extraTurn == -1):
-            print(f'\n\nThe pitt option {playerChoice+1} is not a valid choice.\n')
+            print(f'\n\nThe pit option {playerChoice+1} is not a valid choice.\n')
 
         elif(extraTurn == 1):
             print(f'\n\nPlayer {currentPlayer+1} ended their turn in their goal. They\'re granted an extra turn.\n')
@@ -94,18 +94,18 @@ def startGameAI():
         #Otherwise it is the AI's turn
         else:
             #Get the AI value
-            bestCase:PittOption = minimax(depth=9,board=board,maxPlayer=aiPlayer,currentPlayer=currentPlayer, cache=cache)
+            bestCase:PitOption = minimax(depth=9,board=board,maxPlayer=aiPlayer,currentPlayer=currentPlayer, cache=cache)
             playerChoice:int = bestCase.move
-            print(f'\nThe AI chooses pitt {playerChoice + 1} as it has the best score of {bestCase.score} stones difference\n')
+            print(f'\nThe AI chooses pit {playerChoice + 1} as it has the best score of {bestCase.score} stones difference\n')
 
-        extraTurn = moveRocksFromPitt(playerNumber=currentPlayer,board=board,pittNumber=playerChoice)
+        extraTurn = moveRocksFromPit(playerNumber=currentPlayer,board=board,pitNumber=playerChoice)
 
         ## Print board state again after the move
         print('\nBoard after the move\n')
         printTable(board=board, currentPlayer=currentPlayer,choice=False)
 
         if(extraTurn == -1):
-            print(f'\n\nThe pitt option {playerChoice+1} is not a valid choice.\n')
+            print(f'\n\nThe pit option {playerChoice+1} is not a valid choice.\n')
 
         elif(extraTurn == 1):
             if currentPlayer != aiPlayer:
